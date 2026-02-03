@@ -14,6 +14,7 @@ export default class VitalsWidgetPreferences extends ExtensionPreferences {
       title: 'General',
       icon_name: 'preferences-system-symbolic',
     });
+
     window.add(generalPage);
 
     // Position Group
@@ -22,6 +23,7 @@ export default class VitalsWidgetPreferences extends ExtensionPreferences {
       description:
         'Position on screen (drag widget to reposition or use sliders)',
     });
+
     generalPage.add(positionGroup);
 
     this._addSpinRow(
@@ -32,6 +34,7 @@ export default class VitalsWidgetPreferences extends ExtensionPreferences {
       0,
       100,
     );
+
     this._addSpinRow(
       positionGroup,
       settings,
@@ -40,6 +43,59 @@ export default class VitalsWidgetPreferences extends ExtensionPreferences {
       0,
       100,
     );
+
+    // visibility group
+    // Find the Layout & Container Group and modify it
+    const visibilityGroup = new Adw.PreferencesGroup({
+      title: 'Visibility & Interaction',
+      description:
+        'Control what elements are visible. At least one must be active.',
+    });
+    generalPage.add(visibilityGroup);
+
+    const showRingsRow = new Adw.SwitchRow({ title: 'Show Rings' });
+    const showLabelsRow = new Adw.SwitchRow({ title: 'Show Text Labels' });
+    const popupRow = new Adw.SwitchRow({
+      title: 'Enable Details Popup',
+      subtitle: 'Show details when clicking a sensor',
+    });
+
+    // Bind settings
+    settings.bind(
+      'show-rings',
+      showRingsRow,
+      'active',
+      Gio.SettingsBindFlags.DEFAULT,
+    );
+    settings.bind(
+      'show-labels',
+      showLabelsRow,
+      'active',
+      Gio.SettingsBindFlags.DEFAULT,
+    );
+    settings.bind(
+      'enable-popups',
+      popupRow,
+      'active',
+      Gio.SettingsBindFlags.DEFAULT,
+    );
+
+    // Logic: Prevent both being disabled
+    showRingsRow.connect('notify::active', () => {
+      if (!showRingsRow.active && !showLabelsRow.active) {
+        showLabelsRow.active = true;
+      }
+    });
+
+    showLabelsRow.connect('notify::active', () => {
+      if (!showLabelsRow.active && !showRingsRow.active) {
+        showRingsRow.active = true;
+      }
+    });
+
+    visibilityGroup.add(showRingsRow);
+    visibilityGroup.add(showLabelsRow);
+    visibilityGroup.add(popupRow);
 
     // Layout & Container Group
     const layoutGroup = new Adw.PreferencesGroup({
@@ -57,24 +113,14 @@ export default class VitalsWidgetPreferences extends ExtensionPreferences {
     // Load initial state
     orientationRow.selected =
       settings.get_string('orientation') === 'vertical' ? 1 : 0;
+
     // Connect signal to save changes
     orientationRow.connect('notify::selected', () => {
       const value = orientationRow.selected === 1 ? 'vertical' : 'horizontal';
       settings.set_string('orientation', value);
     });
-    layoutGroup.add(orientationRow);
 
-    const showLabelsRow = new Adw.SwitchRow({
-      title: 'Show Text Labels',
-      subtitle: 'Display the percentage value under each ring',
-    });
-    settings.bind(
-      'show-labels',
-      showLabelsRow,
-      'active',
-      Gio.SettingsBindFlags.DEFAULT,
-    );
-    layoutGroup.add(showLabelsRow);
+    layoutGroup.add(orientationRow);
 
     const fontSizeRow = new Adw.SpinRow({
       title: 'Label Font Size',
@@ -84,6 +130,7 @@ export default class VitalsWidgetPreferences extends ExtensionPreferences {
         step_increment: 1,
       }),
     });
+
     settings.bind(
       'label-font-size',
       fontSizeRow,
@@ -100,6 +147,7 @@ export default class VitalsWidgetPreferences extends ExtensionPreferences {
       0,
       100,
     );
+
     this._addSpinRow(
       layoutGroup,
       settings,
@@ -108,6 +156,7 @@ export default class VitalsWidgetPreferences extends ExtensionPreferences {
       0,
       100,
     );
+
     this._addSpinRow(
       layoutGroup,
       settings,
@@ -116,6 +165,7 @@ export default class VitalsWidgetPreferences extends ExtensionPreferences {
       0,
       100,
     );
+
     this._addSpinRow(
       layoutGroup,
       settings,
@@ -143,11 +193,13 @@ export default class VitalsWidgetPreferences extends ExtensionPreferences {
     // Load initial state
     vitalOrientRow.selected =
       settings.get_string('vital-orientation') === 'vertical' ? 1 : 0;
+
     // Connect signal to save changes
     vitalOrientRow.connect('notify::selected', () => {
       const value = vitalOrientRow.selected === 1 ? 'vertical' : 'horizontal';
       settings.set_string('vital-orientation', value);
     });
+
     layoutGroup.add(vitalOrientRow);
 
     // Rings & Icons Group
@@ -155,6 +207,7 @@ export default class VitalsWidgetPreferences extends ExtensionPreferences {
       title: 'Rings & Icons',
       description: 'Global settings for circular indicators',
     });
+
     generalPage.add(ringsGroup);
 
     this._addSpinRow(
@@ -165,6 +218,7 @@ export default class VitalsWidgetPreferences extends ExtensionPreferences {
       20,
       200,
     );
+
     this._addSpinRow(
       ringsGroup,
       settings,
@@ -173,12 +227,14 @@ export default class VitalsWidgetPreferences extends ExtensionPreferences {
       1,
       20,
     );
+
     this._addColorRow(
       ringsGroup,
       settings,
       'inactive-ring-color',
       'Inactive Ring Color',
     );
+
     this._addColorRow(
       ringsGroup,
       settings,
@@ -190,6 +246,7 @@ export default class VitalsWidgetPreferences extends ExtensionPreferences {
     const supportGroup = new Adw.PreferencesGroup({
       title: 'Support Development',
     });
+
     generalPage.add(supportGroup);
 
     const donateRow = new Adw.ActionRow({
@@ -201,6 +258,7 @@ export default class VitalsWidgetPreferences extends ExtensionPreferences {
     const donateIcon = new Gtk.Image({
       icon_name: 'external-link-symbolic',
     });
+
     donateRow.add_suffix(donateIcon);
 
     donateRow.connect('activated', () => {
@@ -236,6 +294,7 @@ export default class VitalsWidgetPreferences extends ExtensionPreferences {
       title: 'Show',
       subtitle: `Display ${getVitalDisplayName(type)} indicator`,
     });
+
     settings.bind(
       `show-${type}`,
       enableRow,
@@ -245,6 +304,28 @@ export default class VitalsWidgetPreferences extends ExtensionPreferences {
     group.add(enableRow);
 
     this._addColorRow(group, settings, `${type}-color`, 'Ring Color');
+
+    // Temperature Unit selection specifically for the temp group
+    if (type === 'temp') {
+      const tempUnitRow = new Adw.ComboRow({
+        title: 'Temperature Unit',
+        model: new Gtk.StringList({
+          strings: ['Percentage', 'Celsius', 'Fahrenheit'],
+        }),
+      });
+
+      // Map gschema enum values to row indices
+      const unitValue = settings.get_string('temp-unit');
+      tempUnitRow.selected =
+        unitValue === 'fahrenheit' ? 2 : unitValue === 'celcius' ? 1 : 0;
+
+      tempUnitRow.connect('notify::selected', () => {
+        const values = ['percentage', 'celcius', 'fahrenheit'];
+        settings.set_string('temp-unit', values[tempUnitRow.selected]);
+      });
+
+      group.add(tempUnitRow);
+    }
 
     this._addSpinRow(
       group,
@@ -271,6 +352,7 @@ export default class VitalsWidgetPreferences extends ExtensionPreferences {
       title,
       adjustment: new Gtk.Adjustment({ lower, upper, step_increment: step }),
     });
+
     settings.bind(key, row, 'value', Gio.SettingsBindFlags.DEFAULT);
     group.add(row);
   }
