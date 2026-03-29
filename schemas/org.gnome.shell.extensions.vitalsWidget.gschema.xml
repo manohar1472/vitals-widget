@@ -14,7 +14,8 @@
   <schema id="org.gnome.shell.extensions.vitalswidget" path="/org/gnome/shell/extensions/vitalswidget/">
     <key name="position-x" type="d"><default>5</default></key>
     <key name="position-y" type="d"><default>88</default></key>
-
+    <key name="always-on-top" type="b"><default>true</default>
+  <summary>Keep widget always above other UI elements</summary></key>
     <key name="background-color" type="s"><default>'rgba(0, 0, 0, 0.8)'</default></key>
     <key name="border-color" type="s"><default>'rgba(255, 255, 255, 0.2)'</default></key>
     <key name="border-radius" type="i"><default>12</default></key>
